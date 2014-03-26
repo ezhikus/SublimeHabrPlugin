@@ -3,6 +3,7 @@ import json
 import urllib
 import SublimeHabrPlugin.websocket
 import sys
+import base64
 
 def download_url_to_string(url):
 	request = urllib.request.Request(url)
@@ -17,12 +18,11 @@ def send_script_to_socket(socket, script):
 	send_to_socket(socket, '{"id": 1, "method": "Runtime.evaluate", "params": { "expression": "' + script + '", "returnByValue": false}}')
 
 def on_open(ws):
-	print('Websocket open, text:' + ws.text)
-	send_script_to_socket(ws, 'document.getElementById(\'text_textarea\').innerHTML = \'' + ws.text + '\';document.getElementsByName(\'preview\')[0].click();')
+	text_to_send = str(base64.b64encode(bytes(ws.text, "utf-8")), encoding='UTF-8')
+	send_script_to_socket(ws, 'document.getElementById(\'text_textarea\').innerHTML = atob(\'' + text_to_send + '\');document.getElementsByName(\'preview\')[0].click();')
 
 def on_message(ws, message):
 	decoded_message = json.loads(message)
-	print(decoded_message)
 	ws.close()
 
 def connect_to_websocket(url):
